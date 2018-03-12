@@ -5,17 +5,28 @@ public:
 
     virtual void Create()
     {
-        SDL_Log("Rocket::Create");
+
+        name = "rocket";
+        m = ROCKET;
+        hitBox_x = 4;
+        hitBox_y = 18;
         GameObject::Create();
     }
 
     virtual void Init(double xPos, double yPos)
     {
         SDL_Log("Rocket::Init");
-        GameObject::Init("rocket", ROCKET);
+        GameObject::Init();
 
         horizontalPosition = xPos;
         verticalPosition = yPos;
+
+    }
+
+    virtual void Receive(Message m)
+    {
+        if(m == CENTIPEDE || m == MUSHROOM)
+            enabled = false;
     }
 
 };

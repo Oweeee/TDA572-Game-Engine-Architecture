@@ -49,6 +49,7 @@
 		<Unit filename="game_object.cpp" />
 		<Unit filename="game_object.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="mushroom.h" />
 		<Unit filename="object_pool.h" />
 		<Unit filename="player.h" />
 		<Unit filename="rocket.h" />

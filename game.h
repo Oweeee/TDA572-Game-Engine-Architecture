@@ -1,3 +1,5 @@
+#include <ctime>
+
 
 class Game : public GameObject
 {
@@ -17,6 +19,8 @@ class Game : public GameObject
     ObjectPool<Centipede_segment> body_pool;
 
     ObjectPool<Centipede> centipede_pool;
+
+    ObjectPool<Mushroom> mushroom_pool;
 
     Sprite * life_sprite;
 
@@ -45,12 +49,15 @@ public:
         head_collider->Create(system, rocket, &game_objects, (ObjectPool<GameObject>*) &head_pool);
         CollideComponent * body_collider = new CollideComponent();
         body_collider->Create(system, rocket, &game_objects, (ObjectPool<GameObject>*) &body_pool);
+        CollideComponent * mushroom_collider = new CollideComponent();
+        mushroom_collider->Create(system, rocket, &game_objects, (ObjectPool<GameObject>*) &mushroom_pool);
 
         rocket->Create();
         rocket->AddComponent(rocket_behaviour);
         rocket->AddComponent(rocket_render);
         rocket->AddComponent(head_collider);
         rocket->AddComponent(body_collider);
+        rocket->AddComponent(mushroom_collider);
         rocket->AddReceiver(this);
 
         player = new Player();
@@ -62,12 +69,15 @@ public:
         player_headCollider->Create(system, player, &game_objects, (ObjectPool<GameObject>*) &head_pool);
         CollideComponent * player_bodyCollider = new CollideComponent();
         player_bodyCollider->Create(system, player, &game_objects, (ObjectPool<GameObject>*) &body_pool);
+        CollideComponent * player_mushroomCollider = new CollideComponent();
+        player_mushroomCollider->Create(system, player, &game_objects, (ObjectPool<GameObject>*) &mushroom_pool);
 
         player->Create();
         player->AddComponent(player_behaviour);
         player->AddComponent(player_render);
         player->AddComponent(player_headCollider);
         player->AddComponent(player_bodyCollider);
+        player->AddComponent(player_mushroomCollider);
         player->AddReceiver(this);
         game_objects.insert(player);
 
@@ -83,12 +93,15 @@ public:
             head_render->Create(system, *head, &game_objects, "data/head/centipede_head_right_1.bmp");
             CollideComponent * head_collider = new CollideComponent();
             head_collider->Create(system, *head, &game_objects, (ObjectPool<GameObject>*) &head_pool);
+            CollideComponent * mush_collider = new CollideComponent();
+            mush_collider->Create(system, *head, &game_objects, (ObjectPool<GameObject>*) &mushroom_pool);
 
 
             (*head)->Create();
             (*head)->AddComponent(head_behaviour);
             (*head)->AddComponent(head_render);
             (*head)->AddComponent(head_collider);
+            (*head)->AddComponent(mush_collider);
             (*head)->AddReceiver(this);
         }
 
@@ -99,10 +112,13 @@ public:
             body_behaviour->Create(system, *body, &game_objects);
             RenderComponent * body_render = new RenderComponent();
             body_render->Create(system, *body, &game_objects, "data/body/centipede_body_right_1.bmp");
+            //CollideComponent * mush_collider = new CollideComponent();
+            //mush_collider->Create(system, *body, &game_objects, (ObjectPool<GameObject>*) &mushroom_pool);
 
             (*body)->Create();
             (*body)->AddComponent(body_behaviour);
             (*body)->AddComponent(body_render);
+            //(*body)->AddComponent(mush_collider);
             (*body)->AddReceiver(this);
         }
 
@@ -121,6 +137,19 @@ public:
             game_objects.insert(*centipede);
 
         }
+
+        mushroom_pool.Create(300);
+
+        for(auto mushroom = mushroom_pool.pool.begin(); mushroom != mushroom_pool.pool.end(); mushroom++)
+        {
+            RenderComponent * mushroom_render = new RenderComponent();
+            mushroom_render->Create(system, *mushroom, &game_objects, "data/mushroom.bmp");
+
+            (*mushroom)->Create();
+            (*mushroom)->AddComponent(mushroom_render);
+            (*mushroom)->AddReceiver(this);
+            game_objects.insert(*mushroom);
+        }
     }
 
     virtual void Init()
@@ -129,8 +158,11 @@ public:
         gameIteration = 1;
 
         player->Init();
+
+        InitMushrooms(50);
+
         Centipede * centipede = centipede_pool.FirstAvailable();
-        centipede->Init(10, SCREEN_WIDTH/2, 96, 1, 1, 200);
+        centipede->Init(10, SCREEN_WIDTH - 64.f, 32, 1, 1, 30);
         centipedes.push_front(centipede);
 
         enabled = true;
@@ -186,7 +218,6 @@ public:
 
         else if(m == SPLIT_CENTIPEDE)
         {
-            rocket->enabled = false;
 
             IncreaseScore(100);
 
@@ -199,7 +230,8 @@ public:
                     if(!(*it)->segments[i]->enabled)
                     {
                         centFound = true;
-                        SplitCentipede((*it), i, centIndex);
+                        centipedes.erase(centipedes.begin() + centIndex);
+                        SplitCentipede((*it), i);
                         break;
                     }
                 }
@@ -210,6 +242,40 @@ public:
             }
         }
 
+        else if(m == MUSHROOM_DESTROY)
+            IncreaseScore(1);
+
+
+    }
+
+    void InitMushrooms(int spawnPercentage)
+    {
+
+        for(int i = 2*SPRITE_HEIGHT; i < SCREEN_HEIGHT-3*SPRITE_HEIGHT; i += 33)
+        {
+            for(int j = 48; j < SCREEN_WIDTH-48; j += 32)
+            {
+
+                if(IsPositionEmpty(j-32, i-33)
+                && IsPositionEmpty(j+32, i-33)
+                && IsPositionEmpty(j-32, j+33)
+                && IsPositionEmpty(j+32, j+33)
+                && IsPositionEmpty(j, i))
+                {
+                    //srand(time(NULL));
+                    int randInt = rand() % 100;
+
+                    if(randInt < spawnPercentage)
+                    {
+                        Mushroom * mush = mushroom_pool.FirstAvailable();
+                        mush->Init(j, i);
+                        //j += 32;
+                    }
+                }
+
+
+            }
+        }
 
     }
 
@@ -222,8 +288,12 @@ public:
 
         gameIteration++;
 
+
+
         player->horizontalPosition = PLAYER_INIT_X;
         player->verticalPosition = PLAYER_INIT_Y;
+
+        InitMushrooms(20);
 
         Centipede * centipede = centipede_pool.FirstAvailable();
         centipede->Init(10, SCREEN_WIDTH/2, 0, 1, 1, 200);
@@ -252,27 +322,27 @@ public:
         score += value;
     }
 
-    void SplitCentipede(Centipede * centipede, int index, int centIndex)
+    void SplitCentipede(Centipede * centipede, int index)
     {
 
         Centipede temp = *centipede;
         Centipede_segment tail = *centipede->segments[centipede->length-1];
         Centipede_segment head = *centipede->segments[0];
 
+
+
         centipede->Disable();
         //centipede->Destroy();
 
-        SDL_Log("SplitCentipede:: length = %i, index = %i", temp.length, index);
 
-        centipedes.erase(centipedes.begin() + centIndex);
         Centipede * newCentipede1 = centipede_pool.FirstAvailable();
 
         if(index == temp.length-1)
         {
             if(temp.length > 1)
             {
-                newCentipede1->Init(temp.length-1, temp.horizontalPosition, temp.verticalPosition, temp.xDir, temp.yDir, temp.speed);
-                SDL_Log("newCentipede1 length = %i", newCentipede1->length);
+                SDL_Log("head xPos = %f, yPos = %f", head.horizontalPosition, head.verticalPosition);
+                newCentipede1->Init(temp.length-1, head.horizontalPosition, head.verticalPosition, head.xDir, head.yDir, temp.speed);
                 centipedes.push_front(newCentipede1);
             }
 
@@ -283,28 +353,40 @@ public:
             if(index == 0)
             {
 
+                SDL_Log("tail xPos = %f, yPos = %f", tail.horizontalPosition, tail.verticalPosition);
 
-                newCentipede1->Init(temp.length-1, tail.horizontalPosition, tail.verticalPosition, -tail.xDir, tail.yDir, tail.speed);
+                newCentipede1->Init(temp.length-1, tail.horizontalPosition, tail.verticalPosition, -tail.xDir, tail.yDir, temp.speed);
                 SDL_Log("newCentipede1 length = %i", newCentipede1->length);
                 centipedes.push_front(newCentipede1);
             }
             else
             {
 
-                newCentipede1->Init(temp.length-(index+1), tail.horizontalPosition, tail.verticalPosition, -tail.xDir, tail.yDir, tail.speed);
-                SDL_Log("newCentipede1 length = %i", newCentipede1->length);
+                SDL_Log("tail xPos = %f, yPos = %f", tail.horizontalPosition, tail.verticalPosition);
+
+                newCentipede1->Init(temp.length-(index+1), tail.horizontalPosition, tail.verticalPosition, -tail.xDir, tail.yDir, temp.speed);
                 centipedes.push_front(newCentipede1);
 
                 Centipede * newCentipede2 = centipede_pool.FirstAvailable();
 
-                newCentipede2->Init(index, head.horizontalPosition, head.verticalPosition, head.xDir, head.yDir, head.speed);
-                SDL_Log("newCentipede2 length = %i", newCentipede2->length);
+                SDL_Log("head xPos = %f, yPos = %f", head.horizontalPosition, head.verticalPosition);
+                newCentipede2->Init(index, head.horizontalPosition, head.verticalPosition, head.xDir, head.yDir, temp.speed);
                 centipedes.push_front(newCentipede2);
             }
 
         }
 
 
+    }
+
+    bool IsPositionEmpty(double xPos, double yPos)
+    {
+        for(auto go = game_objects.begin(); go != game_objects.end(); go++)
+        {
+            if(abs((*go)->horizontalPosition - xPos) < 10 && abs((*go)->verticalPosition - yPos) < 10)
+                return false;
+        }
+        return true;
     }
 
     bool IsGameOver()

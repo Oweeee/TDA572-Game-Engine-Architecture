@@ -1,7 +1,7 @@
 // GameObject represents objects which moves are drawn
 #include <vector>
 
-enum Message { ROCKET, SPLIT_CENTIPEDE, CENTIPEDE, PLAYER, PLAYER_HIT, GAME_OVER, LEVEL_WIN, NO_MSG };
+enum Message { ROCKET, SPLIT_CENTIPEDE, CENTIPEDE, MUSHROOM, MUSHROOM_DESTROY, PLAYER, PLAYER_HIT, GAME_OVER, LEVEL_WIN, NO_MSG };
 
 class Component;
 
@@ -14,6 +14,9 @@ protected:
 public:
 	double horizontalPosition;
 	double verticalPosition;
+	int hitBox_x;
+	int hitBox_y;
+
 	bool enabled;
 	Message m;
     char* name;
@@ -23,7 +26,7 @@ public:
 	virtual void Create();
 	virtual void AddComponent(Component * component);
 
-	virtual void Init(char* name, Message m);
+	virtual void Init();
 	virtual void Update(float dt);
 	virtual void Destroy();
 	virtual void AddReceiver(GameObject *go);

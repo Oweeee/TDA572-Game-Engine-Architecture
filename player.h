@@ -6,18 +6,29 @@ public:
 
     int lives;
 
+    double prev_xPos, prev_yPos;
+
     virtual ~Player() {}
+
+    virtual void Create()
+    {
+        name = "player";
+        m = PLAYER;
+        hitBox_x = 30;
+        hitBox_y = 32;
+        GameObject::Create();
+    }
 
     virtual void Init()
     {
         SDL_Log("Player::Init");
-        GameObject::Init("player", PLAYER);
+        GameObject::Init();
         lives = NUM_LIVES;
+
     }
 
     virtual void Receive(Message m)
     {
-        SDL_Log("Player Receive");
         if(m == CENTIPEDE)
         {
             SDL_Log("Player::Hit!");
@@ -27,6 +38,11 @@ public:
                 Send(GAME_OVER);
             else
                 Send(PLAYER_HIT);
+        }
+        if(m == MUSHROOM)
+        {
+            horizontalPosition = prev_xPos;
+            verticalPosition = prev_yPos;
         }
 
     }
@@ -49,12 +65,20 @@ public:
 
     virtual void Init()
     {
+
+
         go->horizontalPosition = PLAYER_INIT_X;
         go->verticalPosition = PLAYER_INIT_Y;
+
     }
 
     virtual void Update(float dt)
     {
+        Player * p = (Player *) go;
+
+        p->prev_xPos = p->horizontalPosition;
+        p->prev_yPos = p->verticalPosition;
+
         AvancezLib::KeyStatus keys;
         system->getKeyStatus(keys);
         if(keys.right) Move('x', dt * PLAYER_SPEED);
@@ -67,7 +91,7 @@ public:
 
             if(rocket != NULL && !rocket->enabled)
             {
-                rocket->Init(go->horizontalPosition, go->verticalPosition);
+                rocket->Init(p->horizontalPosition, p->verticalPosition);
                 game_objects->insert(rocket);
 
             }

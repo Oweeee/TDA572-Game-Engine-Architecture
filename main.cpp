@@ -14,6 +14,8 @@ const unsigned int	NUM_LIVES = 2;
 const unsigned int  SCREEN_WIDTH = 768;
 const unsigned int  SCREEN_HEIGHT = 768;
 
+const unsigned int  SPRITE_WIDTH = 32, SPRITE_HEIGHT = 32;
+
 const float         PLAYER_SPEED = 400.f;
 const float         ROCKET_SPEED = 1200.f;
 
@@ -28,6 +30,7 @@ float game_speed = 1.f;
 
 #include "player.h"
 #include "centipede.h"
+#include "mushroom.h"
 
 #include "game.h"
 

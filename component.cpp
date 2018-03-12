@@ -49,10 +49,17 @@ void CollideComponent::Update(float dt)
         {
             if (go0->enabled)
             {
-                if ((go0->horizontalPosition > go->horizontalPosition - 10) &&
-                (go0->horizontalPosition < go->horizontalPosition + 10) &&
-				(go0->verticalPosition   > go->verticalPosition - 10) &&
-				(go0->verticalPosition   < go->verticalPosition + 10))
+                float go_xMin = (go->horizontalPosition + 16.f) - (go->hitBox_x/2);
+                float go_xMax = (go->horizontalPosition + 16.f) + (go->hitBox_x/2);
+                float go_yMin = (go->verticalPosition + 16.f) - (go->hitBox_y/2);
+                float go_yMax = (go->verticalPosition + 16.f) + (go->hitBox_y/2);
+
+                float go0_xMin = (go0->horizontalPosition + 16.f) - (go0->hitBox_x/2);
+                float go0_xMax = (go0->horizontalPosition + 16.f) + (go0->hitBox_x/2);
+                float go0_yMin = (go0->verticalPosition + 16.f) - (go0->hitBox_y/2);
+                float go0_yMax = (go0->verticalPosition + 16.f) + (go0->hitBox_y/2);
+
+                if(!(go0_xMin > go_xMax || go0_xMax < go_xMin || go0_yMin > go_yMax || go0_yMax < go_yMin))
                 {
 
                     if(go0->m == go->m)
@@ -66,6 +73,11 @@ void CollideComponent::Update(float dt)
                         go->Receive(go0->m);
                         go0->Receive(go->m);
                     }
+
+
+
+
+
 
 			}
 		}

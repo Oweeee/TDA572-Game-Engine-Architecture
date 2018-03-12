@@ -18,6 +18,18 @@ public:
 
 	virtual ~Centipede() { SDL_Log("Centipede::~Centipede"); }
 
+	virtual void Create()
+	{
+        name = "centipede";
+	    m = CENTIPEDE;
+	    GameObject::Create();
+	}
+
+	/*virtual void Init(std::vector<Centipede_segment*> segments)
+	{
+
+	}*/
+
 	virtual void Init(int length, float xPos, float yPos, int xDir, int yDir, float speed)
 	{
 
@@ -30,8 +42,12 @@ public:
 	    this->yDir = yDir;
 	    this->speed = speed;
 
+	    //Init Head
+
+
+
 		SDL_Log("Centipede::Init");
-		GameObject::Init("centipede", CENTIPEDE);
+		GameObject::Init();
 	}
 
 	void Disable()
@@ -42,6 +58,8 @@ public:
         }
         enabled = false;
 	}
+
+
 
 };
 
@@ -92,15 +110,17 @@ public:
             else
                 xPos = ceil(centipede->horizontalPosition/32)*32;
         }
-
-
+        SDL_Log("yPos = %f", centipede->verticalPosition);
+        SDL_Log("(int) yPos = %i", (int)centipede->verticalPosition);
+        SDL_Log("(int) yPos mod 32 =  %i", ((int)centipede->verticalPosition) % 32);
+        SDL_Log("floor = %f", floor(centipede->verticalPosition/32)*32);
         if(centipede->verticalPosition > SCREEN_HEIGHT-32)
             yPos = SCREEN_HEIGHT-32;
         else if(centipede->verticalPosition < 0)
             yPos = 0;
         else
         {
-            if((int)centipede->verticalPosition % 32 < 16)
+            if(((int)centipede->verticalPosition) % 32 < 16)
                 yPos = floor(centipede->verticalPosition/32)*32;
             else
                 yPos = ceil(centipede->verticalPosition/32)*32;
@@ -111,11 +131,15 @@ public:
         int yDir = centipede->yDir;
         float speed = centipede->speed;
 
+        SDL_Log("speed = %f", speed);
+
+        SDL_Log("length = %i", length);
+
         centipede->segments.reserve(length);
 
         Centipede_segment * head = head_segment_pool->FirstAvailable();
 
-        SDL_Log("Head Init, x = %f, y = %f", xPos, yPos);
+        SDL_Log("Head Init, x = %f, y = %f, xDir = %i, yDir = %i", xPos, yPos, xDir, yDir);
         head->Init(xPos, yPos, xDir, yDir, speed, NULL);
         centipede->segments[0] = head;
 
@@ -128,19 +152,19 @@ public:
             float segment_yPos = prev->verticalPosition;
             int segment_xDir = prev->xDir;
             int segment_yDir = prev->yDir;
-            if(segment_xPos < 0)
+            if((int)segment_xPos < 0)
             {
                 segment_yPos -=segment_yDir*32;
                 segment_xPos = abs(segment_xPos);
                 segment_xDir = -segment_xDir;
             }
-            else if(segment_xPos > SCREEN_WIDTH-32)
+            else if((int)segment_xPos > SCREEN_WIDTH-32)
             {
                 segment_yPos -=segment_yDir*32;
                 segment_xPos = SCREEN_WIDTH-(segment_xPos - SCREEN_WIDTH)-32;
                 segment_xDir = -segment_xDir;
             }
-            SDL_Log("Segment %i Init, x = %f  y = %f", i, segment_xPos, segment_yPos);
+            SDL_Log("Segment %i Init, x = %f  y = %f, xDir = %i, yDir = %i", i, segment_xPos, segment_yPos, segment_xDir, segment_yDir);
             segment->Init(segment_xPos, segment_yPos, segment_xDir, segment_yDir, speed, prev);
             centipede->segments[i] = segment;
         }

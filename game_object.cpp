@@ -15,7 +15,7 @@ void GameObject::AddComponent(Component * component)
 }
 
 
-void GameObject::Init(char* name, Message m)
+void GameObject::Init()
 {
 	//SDL_Log("GameObject::Init");
 
@@ -24,9 +24,6 @@ void GameObject::Init(char* name, Message m)
 
         (*it)->Init();
     }
-
-    this->m = m;
-    this->name = name;
 	enabled = true;
 }
 
