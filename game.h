@@ -15,6 +15,8 @@ class Game : public GameObject
 
     Rocket * rocket;
 
+
+
     ObjectPool<Centipede_segment> head_pool;
 
     ObjectPool<Centipede_segment> body_pool;
@@ -25,6 +27,10 @@ class Game : public GameObject
 
     ObjectPool<Spider> spider_pool;
 
+    ObjectPool<Flea> flea_pool;
+
+    Flea * fleaP;
+
     Sprite * life_sprite;
 
     bool game_over;
@@ -34,6 +40,7 @@ class Game : public GameObject
     unsigned int gameIteration;
 
     int spider_cd;
+    int flea_cd;
 
 public:
 
@@ -58,7 +65,8 @@ public:
         mushroom_collider->Create(system, rocket, &game_objects, (ObjectPool<GameObject>*) &mushroom_pool);
         CollideComponent * spider_collider = new CollideComponent();
         spider_collider->Create(system, rocket, &game_objects, (ObjectPool<GameObject>*) &spider_pool);
-
+        CollideComponent * flea_collider = new CollideComponent();
+        flea_collider->Create(system, rocket, &game_objects, (ObjectPool<GameObject>*) &flea_pool);
 
         rocket->Create();
         rocket->AddComponent(rocket_behaviour);
@@ -67,6 +75,7 @@ public:
         rocket->AddComponent(body_collider);
         rocket->AddComponent(mushroom_collider);
         rocket->AddComponent(spider_collider);
+        rocket->AddComponent(flea_collider);
         rocket->AddReceiver(this);
 
         player = new Player();
@@ -82,6 +91,8 @@ public:
         player_mushroomCollider->Create(system, player, &game_objects, (ObjectPool<GameObject>*) &mushroom_pool);
         CollideComponent * player_spiderCollider = new CollideComponent();
         player_spiderCollider->Create(system, player, &game_objects, (ObjectPool<GameObject>*) &spider_pool);
+        CollideComponent * player_fleaCollider = new CollideComponent();
+        player_fleaCollider->Create(system, player, &game_objects, (ObjectPool<GameObject>*) &flea_pool);
 
 
         player->Create();
@@ -91,10 +102,28 @@ public:
         player->AddComponent(player_bodyCollider);
         player->AddComponent(player_mushroomCollider);
         player->AddComponent(player_spiderCollider);
+        player->AddComponent(player_fleaCollider);
         player->AddReceiver(this);
         game_objects.insert(player);
 
         life_sprite = system->createSprite("data/player_2.bmp");
+
+        flea_pool.Create(1);
+
+        for(auto flea = flea_pool.pool.begin(); flea != flea_pool.pool.end(); flea++)
+        {
+            FleaBehaviourComponent * flea_behaviour = new FleaBehaviourComponent();
+            flea_behaviour->Create(system, *flea, &game_objects);
+            RenderComponent * flea_render = new RenderComponent();
+            flea_render->Create(system, *flea, &game_objects, "data/flea.bmp");
+
+            (*flea)->Create();
+            (*flea)->AddComponent(flea_behaviour);
+            (*flea)->AddComponent(flea_render);
+            (*flea)->AddReceiver(this);
+            game_objects.insert(*flea);
+
+        }
 
 
         head_pool.Create(20);
@@ -187,9 +216,10 @@ public:
 
         player->Init();
 
-        InitMushrooms(50);
+        InitMushroomField(50);
 
-        spider_cd = rand() % 20 + 10;
+        spider_cd = rand() % 10 + 10;
+        flea_cd = rand() % 20 + 10;
 
         Centipede * centipede = centipede_pool.FirstAvailable();
         //centipede->Init(10, 32, 32.f, -1, -1, 200);
@@ -214,6 +244,9 @@ public:
 
             if(system->getElapsedTime() >= spider_cd)
                 InitSpider();
+
+            if(system->getElapsedTime() >= flea_cd)
+                InitFlea();
 
             for(auto go = game_objects.begin(); go != game_objects.end(); go++)
                 (*go)->Update(dt);
@@ -253,6 +286,9 @@ public:
         else if(m == PLAYER_HIT)
             NewGame(gameIteration - 1);
 
+        else if(m == MUSHROOM_INIT)
+            InitMushroom(100, fleaP->verticalPosition, fleaP->horizontalPosition);
+
         else if(m == SPLIT_CENTIPEDE)
         {
 
@@ -284,6 +320,9 @@ public:
 
         else if(m == SPIDER_KILL)
             IncreaseScore(300);
+
+        else if(m == FLEA_KILL)
+            IncreaseScore(200);
 
 
     }
@@ -395,38 +434,48 @@ public:
     {
         Spider * spider = spider_pool.FirstAvailable();
         spider->Init();
-        spider_cd = system->getElapsedTime() + rand() % 20 + 10;
+        spider_cd = system->getElapsedTime() + rand() % 10 + 10;
     }
 
-    void InitMushrooms(int spawnPercentage)
+    void InitFlea()
+    {
+        Flea * flea = flea_pool.FirstAvailable();
+        flea->Init();
+        fleaP = flea;
+        flea_cd = system->getElapsedTime() + rand() % 20 + 10;
+    }
+
+    void InitMushroomField(int spawnPercentage)
     {
 
-        for(int i = 2*SPRITE_HEIGHT; i < SCREEN_HEIGHT-3*SPRITE_HEIGHT; i += 33)
+        for(int i = 64; i < SCREEN_HEIGHT-96; i += 32)
         {
             for(int j = 48; j < SCREEN_WIDTH-48; j += 32)
             {
 
-                if(IsPositionEmpty(j-32, i-33)
-                && IsPositionEmpty(j+32, i-33)
-                && IsPositionEmpty(j-32, j+33)
-                && IsPositionEmpty(j+32, j+33)
-                && IsPositionEmpty(j, i))
-                {
-                    //srand(time(NULL));
-                    int randInt = rand() % 100;
-
-                    if(randInt < spawnPercentage)
-                    {
-                        Mushroom * mush = mushroom_pool.FirstAvailable();
-                        mush->Init(j, i);
-                        //j += 32;
-                    }
-                }
-
+                InitMushroom(spawnPercentage, i, j);
 
             }
         }
 
+    }
+
+    void InitMushroom(int spawnPercentage, int i, int j)
+    {
+        if(IsPositionEmpty(j-32, i-32)
+            && IsPositionEmpty(j+32, i-32)
+            && IsPositionEmpty(j-32, j+32)
+            && IsPositionEmpty(j+32, j+32)
+            && IsPositionEmpty(j, i))
+            {
+                int randInt = rand() % 100;
+
+                if(randInt < spawnPercentage)
+                {
+                    Mushroom * mush = mushroom_pool.FirstAvailable();
+                    mush->Init(j, i);
+                }
+            }
     }
 
     void NewGame(int extraHeads)
@@ -443,7 +492,7 @@ public:
         player->horizontalPosition = PLAYER_INIT_X;
         player->verticalPosition = PLAYER_INIT_Y;
 
-        InitMushrooms(20);
+        InitMushroomField(20);
 
         Centipede * centipede = centipede_pool.FirstAvailable();
         centipede->Init(10, SCREEN_WIDTH/2, 0, 1, 1, 200);

@@ -19,6 +19,7 @@ const unsigned int  SPRITE_WIDTH = 32, SPRITE_HEIGHT = 32;
 const float         PLAYER_SPEED = 400.f;
 const float         ROCKET_SPEED = 1200.f;
 const float         SPIDER_SPEED = 100.f;
+const float         FLEA_SPEED   = 200.f;
 
 const double        PLAYER_INIT_X = SCREEN_WIDTH / 2;
 const double        PLAYER_INIT_Y = SCREEN_HEIGHT - 32;
@@ -33,6 +34,7 @@ float game_speed = 1.f;
 #include "centipede.h"
 #include "mushroom.h"
 #include "spider.h"
+#include "flea.h"
 
 #include "game.h"
 

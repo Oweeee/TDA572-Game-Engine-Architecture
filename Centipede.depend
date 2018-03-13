@@ -20,7 +20,7 @@
 	<SDL2/SDL_log.h>
 	<cstdlib>
 
-1520948077 /home/oskarwillman/dev/Game Engine Architecture/Centipede/game_object.h
+1520960502 /home/oskarwillman/dev/Game Engine Architecture/Centipede/game_object.h
 	<vector>
 
 1520520668 source:/home/oskarwillman/dev/Game Engine Architecture/Centipede/game_object.cpp
@@ -28,7 +28,7 @@
 	"component.h"
 	"avancezlib.h"
 
-1520949648 source:/home/oskarwillman/dev/Game Engine Architecture/Centipede/main.cpp
+1520958712 source:/home/oskarwillman/dev/Game Engine Architecture/Centipede/main.cpp
 	"stdio.h"
 	"avancezlib.h"
 	"object_pool.h"
@@ -40,12 +40,13 @@
 	"centipede.h"
 	"mushroom.h"
 	"spider.h"
+	"flea.h"
 	"game.h"
 
-1520948152 /home/oskarwillman/dev/Game Engine Architecture/Centipede/player.h
+1520961366 /home/oskarwillman/dev/Game Engine Architecture/Centipede/player.h
 	"rocket.h"
 
-1520953418 /home/oskarwillman/dev/Game Engine Architecture/Centipede/game.h
+1520961639 /home/oskarwillman/dev/Game Engine Architecture/Centipede/game.h
 	<ctime>
 
 1520950491 /home/oskarwillman/dev/Game Engine Architecture/Centipede/rocket.h
@@ -57,7 +58,9 @@
 	"centipede_segment.h"
 	<vector>
 
-1520888344 /home/oskarwillman/dev/Game Engine Architecture/Centipede/mushroom.h
+1520958354 /home/oskarwillman/dev/Game Engine Architecture/Centipede/mushroom.h
 
 1520953440 /home/oskarwillman/dev/Game Engine Architecture/Centipede/spider.h
+
+1520960629 /home/oskarwillman/dev/Game Engine Architecture/Centipede/flea.h
 

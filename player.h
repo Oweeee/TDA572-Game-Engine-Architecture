@@ -29,7 +29,7 @@ public:
 
     virtual void Receive(Message m)
     {
-        if(m == CENTIPEDE || m == SPIDER)
+        if(m == CENTIPEDE || m == SPIDER || m == FLEA)
         {
             SDL_Log("Player::Hit!");
             lives--;
