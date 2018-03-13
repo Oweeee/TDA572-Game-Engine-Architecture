@@ -12,24 +12,85 @@ public:
 
     float speed;
 
-public:
+    ObjectPool<Centipede_segment> * body_segment_pool;
 
-
+    ObjectPool<Centipede_segment> * head_segment_pool;
 
 	virtual ~Centipede() { SDL_Log("Centipede::~Centipede"); }
 
-	virtual void Create()
+
+	virtual void Create(ObjectPool<Centipede_segment> * head_segment_pool, ObjectPool<Centipede_segment> * body_segment_pool)
 	{
+
+        this->head_segment_pool = head_segment_pool;
+
+        this->body_segment_pool = body_segment_pool;
+
+
         name = "centipede";
 	    m = CENTIPEDE;
 	    GameObject::Create();
 	}
 
-	/*virtual void Init(std::vector<Centipede_segment*> segments)
+	//Init a new Centipede with part of an old Centipede as reference.
+	virtual void Init(std::vector<Centipede_segment> segments)
 	{
 
-	}*/
 
+	    this->length = segments.size();
+	    this->horizontalPosition = segments[0].horizontalPosition;
+	    this->verticalPosition = segments[0].verticalPosition;
+	    this->xDir = segments[0].xDir;
+	    this->yDir = segments[0].yDir;
+	    this->speed = segments[0].speed;
+
+
+	    this->segments.reserve(segments.size());
+
+
+	    Centipede_segment * head = head_segment_pool->FirstAvailable();
+
+        head->Init(horizontalPosition, verticalPosition, xDir, yDir, speed, NULL);
+
+        head->dirChanges_x = segments[0].dirChanges_x;
+        head->dirChanges_y = segments[0].dirChanges_y;
+
+        if(segments[0].verticalMovement){
+            head->verticalMovement = true;
+            head->vertDist = segments[0].vertDist;
+        }
+
+        this->segments.push_back(head);
+
+
+        for(int i = 1; i < segments.size(); i++)
+        {
+            Centipede_segment * segment = body_segment_pool->FirstAvailable();
+            Centipede_segment * prev = this->segments[i-1];
+
+            segment->Init(segments[i].horizontalPosition, segments[i].verticalPosition, segments[i].xDir, segments[i].yDir, speed, prev);
+
+            segment->dirChanges_x = segments[i].dirChanges_x;
+            segment->dirChanges_y = segments[i].dirChanges_y;
+
+            if(segments[i].verticalMovement){
+                segment->verticalMovement = true;
+                segment->vertDist = segments[i].vertDist;
+            }
+
+
+
+            this->segments.push_back(segment);
+        }
+
+
+		SDL_Log("Centipede::Init");
+		GameObject::Init();
+
+	}
+
+
+	//Init a new Centipede with a position as offset.
 	virtual void Init(int length, float xPos, float yPos, int xDir, int yDir, float speed)
 	{
 
@@ -41,8 +102,73 @@ public:
 	    this->xDir = xDir;
 	    this->yDir = yDir;
 	    this->speed = speed;
+        segments.reserve(length);
+
 
 	    //Init Head
+
+	    //Making sure the head is not initiated at weird positions.
+        if(horizontalPosition > SCREEN_WIDTH-32)
+            horizontalPosition = SCREEN_WIDTH-32;
+        else if(horizontalPosition < 0)
+            horizontalPosition = 0;
+        else
+        {
+            if((int)horizontalPosition % 32 < 16)
+                horizontalPosition = floor(horizontalPosition/32)*32;
+            else
+                horizontalPosition = ceil(horizontalPosition/32)*32;
+        }
+
+        if(verticalPosition > SCREEN_HEIGHT-32)
+            verticalPosition = SCREEN_HEIGHT-32;
+        else if(verticalPosition < 0)
+            verticalPosition = 0;
+        else
+        {
+            if(((int)verticalPosition) % 32 < 16)
+                verticalPosition = floor(verticalPosition/32)*32;
+            else
+                verticalPosition = ceil(verticalPosition/32)*32;
+        }
+
+        Centipede_segment * head = head_segment_pool->FirstAvailable();
+
+        head->Init(horizontalPosition, verticalPosition, xDir, yDir, speed, NULL);
+        segments.push_back(head);
+
+        SDL_Log("head xPos = %f", head->horizontalPosition);
+        SDL_Log("segments[0] xPos = %f", segments[0]->horizontalPosition);
+
+
+        //Init a body of segments.
+
+        for(int i = 1; i < length; i++)
+        {
+            Centipede_segment * segment = body_segment_pool->FirstAvailable();
+            Centipede_segment * prev = segments[i-1];
+            float segment_xPos = prev->horizontalPosition-(xDir*32);         //xPos-(xDir*i*32);
+            float segment_yPos = prev->verticalPosition;
+            int segment_xDir = prev->xDir;
+            int segment_yDir = prev->yDir;
+
+            if((int)segment_xPos < 0)
+            {
+                segment_yPos -=segment_yDir*32;
+                segment_xPos = abs(segment_xPos);
+                segment_xDir = -segment_xDir;
+            }
+
+            else if((int)segment_xPos > SCREEN_WIDTH-32)
+            {
+                segment_yPos -=segment_yDir*32;
+                segment_xPos = SCREEN_WIDTH-(segment_xPos - SCREEN_WIDTH)-32;
+                segment_xDir = -segment_xDir;
+            }
+
+            segment->Init(segment_xPos, segment_yPos, segment_xDir, segment_yDir, speed, prev);
+            segments.push_back(segment);
+        }
 
 
 
@@ -66,14 +192,7 @@ public:
 class CentipedeBehaviourComponent : public Component
 {
 
-
-    ObjectPool<Centipede_segment> * body_segment_pool;
-
-    ObjectPool<Centipede_segment> * head_segment_pool;
-
     Centipede * centipede;
-
-
 
 public:
 
@@ -81,94 +200,11 @@ public:
 
 
 
-    virtual void Create(AvancezLib* system, GameObject * go, std::set<GameObject*> * game_objects,
-                        ObjectPool<Centipede_segment> * head_segment_pool, ObjectPool<Centipede_segment> * body_segment_pool)
+    virtual void Create(AvancezLib* system, GameObject * go, std::set<GameObject*> * game_objects)
     {
         Component::Create(system, go, game_objects);
 
-        this->head_segment_pool = head_segment_pool;
-
-        this->body_segment_pool = body_segment_pool;
-
         centipede = (Centipede *) go;
-    }
-
-    virtual void Init()
-    {
-
-        int length = centipede->length;
-        float xPos, yPos;
-
-        if(centipede->horizontalPosition > SCREEN_WIDTH-32)
-            xPos = SCREEN_WIDTH-32;
-        else if(centipede->horizontalPosition < 0)
-            xPos = 0;
-        else
-        {
-            if((int)centipede->horizontalPosition % 32 < 16)
-                xPos = floor(centipede->horizontalPosition/32)*32;
-            else
-                xPos = ceil(centipede->horizontalPosition/32)*32;
-        }
-        SDL_Log("yPos = %f", centipede->verticalPosition);
-        SDL_Log("(int) yPos = %i", (int)centipede->verticalPosition);
-        SDL_Log("(int) yPos mod 32 =  %i", ((int)centipede->verticalPosition) % 32);
-        SDL_Log("floor = %f", floor(centipede->verticalPosition/32)*32);
-        if(centipede->verticalPosition > SCREEN_HEIGHT-32)
-            yPos = SCREEN_HEIGHT-32;
-        else if(centipede->verticalPosition < 0)
-            yPos = 0;
-        else
-        {
-            if(((int)centipede->verticalPosition) % 32 < 16)
-                yPos = floor(centipede->verticalPosition/32)*32;
-            else
-                yPos = ceil(centipede->verticalPosition/32)*32;
-        }
-
-
-        int xDir = centipede->xDir;
-        int yDir = centipede->yDir;
-        float speed = centipede->speed;
-
-        SDL_Log("speed = %f", speed);
-
-        SDL_Log("length = %i", length);
-
-        centipede->segments.reserve(length);
-
-        Centipede_segment * head = head_segment_pool->FirstAvailable();
-
-        SDL_Log("Head Init, x = %f, y = %f, xDir = %i, yDir = %i", xPos, yPos, xDir, yDir);
-        head->Init(xPos, yPos, xDir, yDir, speed, NULL);
-        centipede->segments[0] = head;
-
-
-        for(int i = 1; i < length; i++)
-        {
-            Centipede_segment * segment = body_segment_pool->FirstAvailable();
-            Centipede_segment * prev = centipede->segments[i-1];
-            float segment_xPos = prev->horizontalPosition-(xDir*32);         //xPos-(xDir*i*32);
-            float segment_yPos = prev->verticalPosition;
-            int segment_xDir = prev->xDir;
-            int segment_yDir = prev->yDir;
-            if((int)segment_xPos < 0)
-            {
-                segment_yPos -=segment_yDir*32;
-                segment_xPos = abs(segment_xPos);
-                segment_xDir = -segment_xDir;
-            }
-            else if((int)segment_xPos > SCREEN_WIDTH-32)
-            {
-                segment_yPos -=segment_yDir*32;
-                segment_xPos = SCREEN_WIDTH-(segment_xPos - SCREEN_WIDTH)-32;
-                segment_xDir = -segment_xDir;
-            }
-            SDL_Log("Segment %i Init, x = %f  y = %f, xDir = %i, yDir = %i", i, segment_xPos, segment_yPos, segment_xDir, segment_yDir);
-            segment->Init(segment_xPos, segment_yPos, segment_xDir, segment_yDir, speed, prev);
-            centipede->segments[i] = segment;
-        }
-
     }
 
     virtual void Update(float dt)
@@ -180,7 +216,6 @@ public:
         {
             centipede->segments[i]->Update(dt);
         }
-        //SDL_Log("head Y - tail Y = %d", abs(centipede->segments[0]->verticalPosition - centipede->segments[centipede->length-1]->verticalPosition));
     }
 };
 

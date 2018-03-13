@@ -9,8 +9,8 @@ public:
     {
         name = "mushroom";
         m = MUSHROOM;
-        hitBox_x = 30;
-        hitBox_y = 30;
+        hitBox_x = 28;
+        hitBox_y = 28;
         GameObject::Create();
     }
 

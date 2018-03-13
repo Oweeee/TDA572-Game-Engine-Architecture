@@ -20,7 +20,7 @@ public:
         name = "segment";
         m = CENTIPEDE;
         hitBox_x = 28;
-        hitBox_y = 32;
+        hitBox_y = 28;
         GameObject::Create();
     }
 
@@ -60,7 +60,6 @@ public:
             this->xDir = -this->xDir;
             this->dirChanges_x.push(this->horizontalPosition);
             this->dirChanges_y.push(this->verticalPosition);
-            SDL_Log("%i" ,dirChanges_x.size());
         }
 
     }
@@ -81,24 +80,19 @@ public:
     {
         Centipede_segment * cent = (Centipede_segment *) go;
 
-        if(cent->xDir < -1){
-            SDL_Log("xDir too small");
-            cent->xDir = -1;
-        }
 
 
-        if(cent->xDir > 1)
-        {
-            SDL_Log("xDir too large");
-            cent->xDir = 1;
+        /*if(cent->prev == NULL)
+        {*/
 
-        }
+            if(cent->prev != NULL)
+            {
+                if(abs(cent->horizontalPosition - cent->prev->horizontalPosition)>32)
+                    cent->horizontalPosition = cent->prev->horizontalPosition - cent->xDir*32;
 
-        if(cent->speed == 0)
-            SDL_Log("wtf");
-
-        if(cent->prev == NULL)
-        {
+                if(abs(cent->verticalPosition - cent->prev->verticalPosition)>32)
+                    cent->verticalPosition = cent->prev->verticalPosition - cent->yDir*32;
+            }
 
             if(!cent->verticalMovement)
             {
@@ -113,7 +107,6 @@ public:
                 cent->verticalMovement = false;
                 cent->dirChanges_x.push(cent->horizontalPosition);
                 cent->dirChanges_y.push(cent->verticalPosition);
-                SDL_Log("%i" ,cent->dirChanges_x.size());
             }
 
 
@@ -127,7 +120,6 @@ public:
                 cent->xDir = -cent->xDir;
                 cent->dirChanges_x.push(cent->horizontalPosition);
                 cent->dirChanges_y.push(cent->verticalPosition);
-                SDL_Log("%i" ,cent->dirChanges_x.size());
             }
 
             if(cent->horizontalPosition < 0.f)
@@ -138,23 +130,27 @@ public:
                 cent->xDir = -cent->xDir;
                 cent->dirChanges_x.push(cent->horizontalPosition);
                 cent->dirChanges_y.push(cent->verticalPosition);
-                SDL_Log("%i" ,cent->dirChanges_x.size());
             }
 
-            if(cent->verticalPosition >= SCREEN_HEIGHT-32)
+            if(cent->verticalPosition > SCREEN_HEIGHT-32)
             {
+
                 cent->yDir = -cent->yDir;
                 cent->verticalPosition = SCREEN_HEIGHT-32;
+                cent->vertDist = 1000;
 
             }
 
-            if(cent->verticalPosition <= 0.f)
+            if(cent->verticalPosition < 0.f)
             {
+
                 cent->yDir = -cent->yDir;
                 cent->verticalPosition = 0;
+                cent->vertDist = 1000;
+
 
             }
-        }
+        /*}
         else
         {
 
@@ -164,18 +160,19 @@ public:
             double prevY = cent->prev->verticalPosition;
 
 
-
             if(cent->verticalMovement)
             {
 
-                if(!cent->prev->dirChanges_y.empty() && abs(y-cent->prev->dirChanges_y.front()) < 0.1)
+                if(!cent->prev->dirChanges_y.empty() && abs(y-cent->prev->dirChanges_y.front()) < 0.1 && abs(x - cent->prev->dirChanges_x.front())<0.1)
                 {
                     cent->horizontalPosition = cent->prev->dirChanges_x.front();
                     cent->verticalPosition = cent->prev->dirChanges_y.front();
                     cent->prev->dirChanges_x.pop();
                     cent->prev->dirChanges_y.pop();
 
+                    cent->xDir = cent->prev->xDir;
                     cent->verticalMovement = false;
+
                     cent->dirChanges_x.push(cent->horizontalPosition);
                     cent->dirChanges_y.push(cent->verticalPosition);
                 }
@@ -183,8 +180,11 @@ public:
                 else
                 {
 
-                    if(abs(y-prevY) > 32)
+                    if(abs(y-prevY) > 32){
+                        SDL_Log("yep");
                         cent->verticalPosition = prevY - (32*cent->yDir);
+                    }
+
 
 
                     cent->verticalPosition += cent->yDir*cent->speed*dt;
@@ -201,19 +201,24 @@ public:
             {
 
 
-                if(!cent->prev->dirChanges_x.empty() && abs(x - cent->prev->dirChanges_x.front())<0.1)
+                if(!cent->prev->dirChanges_x.empty() && abs(x - cent->prev->dirChanges_x.front())<0.1 && abs(y-cent->prev->dirChanges_y.front()) < 0.1)
                 {
-                    cent->horizontalPosition = cent->prev->dirChanges_x.front();
-                    cent->verticalPosition = cent->prev->verticalPosition+(-cent->yDir*32);
 
-                    cent->yDir = cent->prev->yDir;
-                    cent->verticalMovement = true;
-                    cent->xDir *= -1;
+                    cent->horizontalPosition = cent->prev->dirChanges_x.front();
+                    //cent->verticalPosition = cent->prev->verticalPosition-(cent->prev->yDir*32);
 
                     cent->prev->dirChanges_x.pop();
                     cent->prev->dirChanges_y.pop();
+
                     cent->dirChanges_x.push(cent->horizontalPosition);
                     cent->dirChanges_y.push(cent->verticalPosition);
+
+
+
+                    cent->yDir = cent->prev->yDir;
+                    cent->verticalMovement = true;
+
+
 
                 }
                 else if(x!=prevX)
@@ -230,11 +235,11 @@ public:
                 }
                 else
                 {
-                    cent->xDir = cent->prev->xDir;
+                    //'->xDir = cent->prev->xDir;
                     cent->horizontalPosition = prevX-cent->xDir*32;
                 }
             }
-        }
+        }*/
     }
 
 

@@ -25,7 +25,7 @@ public:
 
     virtual void Receive(Message m)
     {
-        if(m == CENTIPEDE || m == MUSHROOM)
+        if(m == CENTIPEDE || m == MUSHROOM || m == SPIDER)
             enabled = false;
     }
 
