@@ -28,7 +28,7 @@
 	"component.h"
 	"avancezlib.h"
 
-1520958712 source:/home/oskarwillman/dev/Game Engine Architecture/Centipede/main.cpp
+1521019907 source:/home/oskarwillman/dev/Game Engine Architecture/Centipede/main.cpp
 	"stdio.h"
 	"avancezlib.h"
 	"object_pool.h"
@@ -37,16 +37,16 @@
 	"component.h"
 	"game_object.h"
 	"player.h"
+	"sidekick.h"
 	"centipede.h"
-	"mushroom.h"
 	"spider.h"
 	"flea.h"
 	"game.h"
 
-1520961366 /home/oskarwillman/dev/Game Engine Architecture/Centipede/player.h
+1521015245 /home/oskarwillman/dev/Game Engine Architecture/Centipede/player.h
 	"rocket.h"
 
-1520961639 /home/oskarwillman/dev/Game Engine Architecture/Centipede/game.h
+1521021292 /home/oskarwillman/dev/Game Engine Architecture/Centipede/game.h
 	<ctime>
 
 1520950491 /home/oskarwillman/dev/Game Engine Architecture/Centipede/rocket.h
@@ -63,4 +63,7 @@
 1520953440 /home/oskarwillman/dev/Game Engine Architecture/Centipede/spider.h
 
 1520960629 /home/oskarwillman/dev/Game Engine Architecture/Centipede/flea.h
+
+1521022335 /home/oskarwillman/dev/Game Engine Architecture/Centipede/sidekick.h
+	"mushroom.h"
 

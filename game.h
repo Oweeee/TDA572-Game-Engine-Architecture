@@ -13,9 +13,11 @@ class Game : public GameObject
 
     Player * player;
 
+    Sidekick * sidekick;
+
     Rocket * rocket;
 
-
+    Rocket * side_rocket;
 
     ObjectPool<Centipede_segment> head_pool;
 
@@ -51,6 +53,7 @@ public:
         this->system = system;
 
 
+        //Create player rocket and accompanying components.
         rocket = new Rocket();
         RocketBehaviourComponent * rocket_behaviour = new RocketBehaviourComponent();
         rocket_behaviour->Create(system, rocket, &game_objects);
@@ -78,6 +81,8 @@ public:
         rocket->AddComponent(flea_collider);
         rocket->AddReceiver(this);
 
+
+        //Create the player with its accompanying components
         player = new Player();
         PlayerBehaviourComponent* player_behaviour = new PlayerBehaviourComponent();
         player_behaviour->Create(system, player, &game_objects, rocket);
@@ -94,7 +99,6 @@ public:
         CollideComponent * player_fleaCollider = new CollideComponent();
         player_fleaCollider->Create(system, player, &game_objects, (ObjectPool<GameObject>*) &flea_pool);
 
-
         player->Create();
         player->AddComponent(player_behaviour);
         player->AddComponent(player_render);
@@ -105,6 +109,9 @@ public:
         player->AddComponent(player_fleaCollider);
         player->AddReceiver(this);
         game_objects.insert(player);
+
+
+
 
         life_sprite = system->createSprite("data/player_2.bmp");
 
@@ -207,6 +214,34 @@ public:
             (*mushroom)->AddReceiver(this);
             mushrooms.insert(*mushroom);
         }
+
+        //Create the sidekicks rocket with its accompanying components.
+        side_rocket = new Rocket();
+        RocketBehaviourComponent * side_rocket_behaviour = new RocketBehaviourComponent();
+        side_rocket_behaviour->Create(system, side_rocket, &game_objects);
+        RenderComponent * side_rocket_render = new RenderComponent();
+        side_rocket_render->Create(system, side_rocket, &game_objects, "data/side_rocket.bmp");
+        CollideComponent * side_rocket_collider = new CollideComponent();
+        side_rocket_collider->Create(system, side_rocket, &game_objects, (ObjectPool<GameObject>*) &mushroom_pool);
+
+        side_rocket->Create();
+        side_rocket->AddComponent(side_rocket_behaviour);
+        side_rocket->AddComponent(side_rocket_render);
+        side_rocket->AddComponent(side_rocket_collider);
+        side_rocket->AddReceiver(this);
+
+
+        //Create the sidekick with its accompanying components.
+        sidekick = new Sidekick();
+        SidekickBehaviourComponent * sidekick_behaviour = new SidekickBehaviourComponent();
+        sidekick_behaviour->Create(system, sidekick, &game_objects, side_rocket, &mushrooms);
+        RenderComponent * sidekick_render = new RenderComponent();
+        sidekick_render->Create(system, sidekick, &game_objects, "data/sidekick.bmp");
+
+        sidekick->Create();
+        sidekick->AddComponent(sidekick_behaviour);
+        sidekick->AddComponent(sidekick_render);
+        game_objects.insert(sidekick);
     }
 
     virtual void Init()
@@ -216,13 +251,16 @@ public:
 
         player->Init();
 
+
         InitMushroomField(50);
+
+        sidekick->Init();
 
         spider_cd = rand() % 10 + 10;
         flea_cd = rand() % 20 + 10;
 
         Centipede * centipede = centipede_pool.FirstAvailable();
-        //centipede->Init(10, 32, 32.f, -1, -1, 200);
+        centipede->Init(10, 32, 32.f, -1, -1, 200);
         centipedes.push_front(centipede);
 
         enabled = true;

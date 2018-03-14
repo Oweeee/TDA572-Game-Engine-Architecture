@@ -21,6 +21,8 @@ const float         ROCKET_SPEED = 1200.f;
 const float         SPIDER_SPEED = 100.f;
 const float         FLEA_SPEED   = 200.f;
 
+const float         SIDEKICK_SPEED = 100.f;
+
 const double        PLAYER_INIT_X = SCREEN_WIDTH / 2;
 const double        PLAYER_INIT_Y = SCREEN_HEIGHT - 32;
 
@@ -31,8 +33,9 @@ float game_speed = 1.f;
 #include "game_object.h"
 
 #include "player.h"
+#include "sidekick.h"
 #include "centipede.h"
-#include "mushroom.h"
+//#include "mushroom.h"
 #include "spider.h"
 #include "flea.h"
 

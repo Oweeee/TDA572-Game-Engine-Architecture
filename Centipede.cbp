@@ -45,6 +45,7 @@
 		<Unit filename="centipede_segment.h" />
 		<Unit filename="component.cpp" />
 		<Unit filename="component.h" />
+		<Unit filename="flea.h" />
 		<Unit filename="game.h" />
 		<Unit filename="game_object.cpp" />
 		<Unit filename="game_object.h" />
@@ -53,6 +54,8 @@
 		<Unit filename="object_pool.h" />
 		<Unit filename="player.h" />
 		<Unit filename="rocket.h" />
+		<Unit filename="sidekick.h" />
+		<Unit filename="spider.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

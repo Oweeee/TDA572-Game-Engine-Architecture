@@ -22,6 +22,10 @@ public:
     virtual void Init()
     {
         SDL_Log("Player::Init");
+
+        horizontalPosition = PLAYER_INIT_X;
+        verticalPosition = PLAYER_INIT_Y;
+
         GameObject::Init();
         lives = NUM_LIVES;
 
@@ -34,7 +38,7 @@ public:
             SDL_Log("Player::Hit!");
             lives--;
 
-            if(lives == 0)
+            if(lives < 0)
                 Send(GAME_OVER);
             else
                 Send(PLAYER_HIT);
@@ -63,14 +67,6 @@ public:
         this->rocket = rocket;
     }
 
-    virtual void Init()
-    {
-
-
-        go->horizontalPosition = PLAYER_INIT_X;
-        go->verticalPosition = PLAYER_INIT_Y;
-
-    }
 
     virtual void Update(float dt)
     {
